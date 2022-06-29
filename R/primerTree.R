@@ -174,20 +174,20 @@ search_primer_pair = function(forward, reverse, name=NULL, num_aligns=500,
               ' mean:', round(mean(lengths),2),
               ' max:', max(lengths))
 
-      start_time = now()
-      primer_search$alignment = do.call(clustalo, c(list(primer_search$sequence, threads=getDoParWorkers()), clustal_options))
-      message(nrow(primer_search$alignment), ' sequences aligned in ',
-              seconds_elapsed_text(start_time),
-              ' length:', ncol(primer_search$alignment))
+     # start_time = now()
+     # primer_search$alignment = do.call(clustalo, c(list(primer_search$sequence, threads=getDoParWorkers()), clustal_options))
+     # message(nrow(primer_search$alignment), ' sequences aligned in ',
+       #       seconds_elapsed_text(start_time),
+        #      ' length:', ncol(primer_search$alignment))
 
-      start_time = now()
-      primer_search$distances = do.call(dist.dna, c(list(primer_search$alignment), distance_options))
-      message('pairwise DNA distances calculated in ',
-              seconds_elapsed_text(start_time))
+    #  start_time = now()
+    #  primer_search$distances = do.call(dist.dna, c(list(primer_search$alignment), distance_options))
+     # message('pairwise DNA distances calculated in ',
+      #        seconds_elapsed_text(start_time))
 
-      start_time = now()
-      primer_search$tree = tree_from_alignment(primer_search$alignment)
-      message('constructed neighbor joining tree in ', seconds_elapsed_text(start_time))
+     # start_time = now()
+    #  primer_search$tree = tree_from_alignment(primer_search$alignment)
+     # message('constructed neighbor joining tree in ', seconds_elapsed_text(start_time))
 
       primer_search
     }, default=primer_search)
