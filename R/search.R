@@ -250,10 +250,42 @@ parsable_html = function(response){
   txt <- gsub('("new_entrez".*?</a>).*?<pre>\n\n', '\\1\n<pre>', txt)
   htmlParse(txt)
 }
-filter_duplicates = function(hits){
+
+
+tryCatch({filter_duplicates = function(hits){
   location_columns = c('accession', 'forward_start', 'forward_stop', 'reverse_start', 'reverse_stop')
   hits[!duplicated(t(apply(hits[location_columns], 1, range,)))]
-}
-
-
+}},
+         error(x) = function(x){
+           final_df <- data.frame(name_forward_primer  = name_f,
+                                  name_reverse_primer  = name_r,
+                                  sequence_forward_primer  = f,
+                                  sequence_reverse_primer  = r,
+                                  amp_glom_subphylum_por = NA,
+                                  amp_glom_class_por = NA,
+                                  amp_glom_order_por = NA,
+                                  amp_glom_family_por = NA,
+                                  amp_glom_genus_por = NA,
+                                  amp_glom_species_por = NA,
+                                  amp_non_glom_subphylum_count = NA,
+                                  amp_non_glom_class_count = NA,
+                                  amp_non_glom_order_count = NA,
+                                  amp_non_glom_family_count = NA,
+                                  amp_non_glom_genus_count = NA,
+                                  amp_non_glom_species_count = NA,
+                                  names_amp_glom_subphylum = NA,
+                                  names_amp_glom_class  = NA,
+                                  names_amp_glom_order  = NA,
+                                  names_amp_glom_family = NA,
+                                  names_amp_glom_genus  = NA,
+                                  names_amp_glom_species  = NA,
+                                  names_amp_non_glom_subphylum  = NA,
+                                  names_amp_non_glom_class = NA,
+                                  names_amp_non_glom_order = NA,
+                                  names_amp_non_glom_family = NA,
+                                  names_amp_non_glom_genus = NA,
+                                  names_amp_non_glom_species = NA)
+           final_df
+         }
+)
 
