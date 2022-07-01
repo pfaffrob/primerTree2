@@ -285,7 +285,6 @@ tryCatch({filter_duplicates = function(hits){
                                   names_amp_non_glom_family = NA,
                                   names_amp_non_glom_genus = NA,
                                   names_amp_non_glom_species = NA)
-           final_df
          }
 )
 
