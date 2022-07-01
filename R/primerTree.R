@@ -151,7 +151,11 @@ search_primer_pair = function(forward, reverse, name=NULL, num_aligns=500,
                                              ...)
       start_time = now()
       primer_search$BLAST_result =
+        
+        if (length(primer_search$BLAST_result) == 0 {primer_search$BLAST_result}
+      else {
         filter_duplicates(ldply(primer_search$response, parse_primer_hits, .parallel=.parallel))
+        })
 
       message(nrow(primer_search$BLAST_result), ' BLAST alignments parsed in ', seconds_elapsed_text(start_time))
 
