@@ -252,7 +252,7 @@ parsable_html = function(response){
 }
 filter_duplicates = function(hits){
   location_columns = c('accession', 'forward_start', 'forward_stop', 'reverse_start', 'reverse_stop')
-  hits[!duplicated(t(apply(hits[location_columns,], 1, range,)))]
+  hits[!duplicated(t(apply(hits[location_columns], 1, range,)))]
 }
 
 
