@@ -117,7 +117,84 @@ plot.primerTree = function(x, ranks=NULL, main=NULL, ...){
 #'  'CGGTTGGGGTGACCTCGGA', 'GCTGTTATCCCTAGGGTAACT',
 #'  num_aligns=1000, total_primer_specificity_mismatch=3)
 #' }
-
+search_primer_pair = function(forward, reverse, name=NULL, num_aligns=500,
+                              num_permutations=25, simplify=TRUE, clustal_options=list(), 
+                              distance_options=list(model="N", pairwise.deletion=T), api_key=Sys.getenv("NCBI_API_KEY"),
+                              ..., .parallel=FALSE, .progress='none'){
+  
+  #HACK, primerTree is an environment rather than a list so we can treat it as
+  #a pointer, I could make it a reference class, but that seems to be overkill
+  #as I am converting to a list at the end of the function anyway...
+  
+  if(missing(forward) || missing(reverse)){
+    BLAST_primer()
+    return()
+  }
+  
+  primer_search = new.env(parent=globalenv())
+  #list all primers used to search
+  primer_search = env2list(
+    try_default({
+      primer_search$name = if(!is.null(name)) name
+      else name=paste(forward, reverse, sep='_')
+      
+      primer_search$arguments =
+        c(forward=forward, reverse=reverse, name=name,
+          num_aligns=num_aligns, num_permutations = num_permutations,
+          simplify=simplify, clustal_options=clustal_options, list(...))
+      
+      primer_search$response = primer_search(forward, reverse,
+                                             num_permutations=num_permutations,
+                                             .progress=.progress,
+                                             .parallel=.parallel,
+                                             num_aligns=num_aligns,
+                                             ...)
+      start_time = now()
+      primer_search$BLAST_result =
+        filter_duplicates(ldply(primer_search$response, parse_primer_hits, .parallel=.parallel))
+      
+      message(nrow(primer_search$BLAST_result), ' BLAST alignments parsed in ', seconds_elapsed_text(start_time))
+      
+      start_time = now()
+      primer_search$taxonomy = get_taxonomy(primer_search$BLAST_result$accession)
+      message('taxonomy retrieved in ', seconds_elapsed_text(start_time))
+      
+      start_time = now()
+      primer_search$sequence = get_sequences(primer_search$BLAST_result$accession,
+                                             primer_search$BLAST_result$product_start,
+                                             primer_search$BLAST_result$product_stop,
+                                             api_key=api_key,
+                                             simplify=simplify,
+                                             .parallel=.parallel)
+      
+      lengths = laply(primer_search$sequence, length)
+      message(length(primer_search$sequence), ' sequences retrieved from NCBI',
+              ' in ', seconds_elapsed_text(start_time), ', product length',
+              ' min:', min(lengths),
+              ' mean:', round(mean(lengths),2),
+              ' max:', max(lengths))
+      
+      start_time = now()
+      primer_search$alignment = do.call(clustalo, c(list(primer_search$sequence, threads=getDoParWorkers()), clustal_options))
+      message(nrow(primer_search$alignment), ' sequences aligned in ',
+              seconds_elapsed_text(start_time),
+              ' length:', ncol(primer_search$alignment))
+      
+      start_time = now()
+      primer_search$distances = do.call(dist.dna, c(list(primer_search$alignment), distance_options))
+      message('pairwise DNA distances calculated in ',
+              seconds_elapsed_text(start_time))
+      
+      start_time = now()
+      primer_search$tree = tree_from_alignment(primer_search$alignment)
+      message('constructed neighbor joining tree in ', seconds_elapsed_text(start_time))
+      
+      primer_search
+    }, default=primer_search)
+  )
+  class(primer_search) = 'primerTree'
+  primer_search
+}
 
 #given a start time print out the number of seconds which have elapsed
 seconds_elapsed_text = function(start_time){
