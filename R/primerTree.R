@@ -36,13 +36,13 @@ print.primerTree = function(x, ...){
   cat("Name: ", x$name, "\n",
       "  Arguments: ", paste(names(x$arguments), x$arguments, sep=":", collapse=' '), "\n")
   cat("\nHTTP Response\n")
-      print(x$response[[1]])
+  print(x$response[[1]])
   cat("\nPrimer Products\n")
-      print(x$sequence)
+  print(x$sequence)
   cat("\nAligned Products\n")
-      print(x$alignment)
+  print(x$alignment)
   cat("\nPhylogenetic Tree\n")
-      print(x$tree)
+  print(x$tree)
 }
 #' plot function for a primerTree object, calls plot_tree_ranks
 #' @param x primerTree object to plot
@@ -118,31 +118,31 @@ plot.primerTree = function(x, ranks=NULL, main=NULL, ...){
 #'  num_aligns=1000, total_primer_specificity_mismatch=3)
 #' }
 search_primer_pair = function(forward, reverse, name=NULL, num_aligns=500,
-    num_permutations=25, simplify=TRUE, clustal_options=list(), 
-    distance_options=list(model="N", pairwise.deletion=T), api_key=Sys.getenv("NCBI_API_KEY"),
-    ..., .parallel=FALSE, .progress='none'){
-
+                              num_permutations=25, simplify=TRUE, clustal_options=list(), 
+                              distance_options=list(model="N", pairwise.deletion=T), api_key=Sys.getenv("NCBI_API_KEY"),
+                              ..., .parallel=FALSE, .progress='none'){
+  
   #HACK, primerTree is an environment rather than a list so we can treat it as
   #a pointer, I could make it a reference class, but that seems to be overkill
   #as I am converting to a list at the end of the function anyway...
-
+  
   if(missing(forward) || missing(reverse)){
     BLAST_primer()
     return()
   }
-
+  
   primer_search = new.env(parent=globalenv())
   #list all primers used to search
   primer_search = env2list(
     try_default({
       primer_search$name = if(!is.null(name)) name
-                    else name=paste(forward, reverse, sep='_')
-
+      else name=paste(forward, reverse, sep='_')
+      
       primer_search$arguments =
         c(forward=forward, reverse=reverse, name=name,
           num_aligns=num_aligns, num_permutations = num_permutations,
           simplify=simplify, clustal_options=clustal_options, list(...))
-
+      
       primer_search$response = primer_search(forward, reverse,
                                              num_permutations=num_permutations,
                                              .progress=.progress,
@@ -150,45 +150,45 @@ search_primer_pair = function(forward, reverse, name=NULL, num_aligns=500,
                                              num_aligns=num_aligns,
                                              ...)
       start_time = now()
-      primer_search$BLAST_result = filter_duplicates(ldply(primer_search$response, parse_primer_hits, .parallel=.parallel))
-        
-
+      primer_search$BLAST_result =
+        filter_duplicates(ldply(primer_search$response, parse_primer_hits, .parallel=.parallel))
+      
       message(nrow(primer_search$BLAST_result), ' BLAST alignments parsed in ', seconds_elapsed_text(start_time))
-
+      
       start_time = now()
       primer_search$taxonomy = get_taxonomy(primer_search$BLAST_result$accession)
       message('taxonomy retrieved in ', seconds_elapsed_text(start_time))
-
-    #  start_time = now()
-    #  primer_search$sequence = get_sequences(primer_search$BLAST_result$accession,
-    #                                         primer_search$BLAST_result$product_start,
-    #                                         primer_search$BLAST_result$product_stop,
-    #                                         api_key=api_key,
-    #                                         simplify=simplify,
-    #                                         .parallel=.parallel)
-
-    #  lengths = laply(primer_search$sequence, length)
-    #  message(length(primer_search$sequence), ' sequences retrieved from NCBI',
-    #          ' in ', seconds_elapsed_text(start_time), ', product length',
-    #          ' min:', min(lengths),
-    #          ' mean:', round(mean(lengths),2),
-    #          ' max:', max(lengths))
-
-     # start_time = now()
-     # primer_search$alignment = do.call(clustalo, c(list(primer_search$sequence, threads=getDoParWorkers()), clustal_options))
-     # message(nrow(primer_search$alignment), ' sequences aligned in ',
-       #       seconds_elapsed_text(start_time),
-        #      ' length:', ncol(primer_search$alignment))
-
-    #  start_time = now()
-    #  primer_search$distances = do.call(dist.dna, c(list(primer_search$alignment), distance_options))
-     # message('pairwise DNA distances calculated in ',
-      #        seconds_elapsed_text(start_time))
-
-     # start_time = now()
-    #  primer_search$tree = tree_from_alignment(primer_search$alignment)
-     # message('constructed neighbor joining tree in ', seconds_elapsed_text(start_time))
-
+      
+      start_time = now()
+      primer_search$sequence = get_sequences(primer_search$BLAST_result$accession,
+                                             primer_search$BLAST_result$product_start,
+                                             primer_search$BLAST_result$product_stop,
+                                             api_key=api_key,
+                                             simplify=simplify,
+                                             .parallel=.parallel)
+      
+      lengths = laply(primer_search$sequence, length)
+      message(length(primer_search$sequence), ' sequences retrieved from NCBI',
+              ' in ', seconds_elapsed_text(start_time), ', product length',
+              ' min:', min(lengths),
+              ' mean:', round(mean(lengths),2),
+              ' max:', max(lengths))
+      
+      start_time = now()
+      primer_search$alignment = do.call(clustalo, c(list(primer_search$sequence, threads=getDoParWorkers()), clustal_options))
+      message(nrow(primer_search$alignment), ' sequences aligned in ',
+              seconds_elapsed_text(start_time),
+              ' length:', ncol(primer_search$alignment))
+      
+      start_time = now()
+      primer_search$distances = do.call(dist.dna, c(list(primer_search$alignment), distance_options))
+      message('pairwise DNA distances calculated in ',
+              seconds_elapsed_text(start_time))
+      
+      start_time = now()
+      primer_search$tree = tree_from_alignment(primer_search$alignment)
+      message('constructed neighbor joining tree in ', seconds_elapsed_text(start_time))
+      
       primer_search
     }, default=primer_search)
   )
@@ -220,10 +220,10 @@ identify.primerTree_plot = function(x, ...) {
 }
 gglocator = function(object) {
   loc <-  as.numeric(grid.locator("npc"))
-
+  
   xrng <- with(object, range(data[,deparse(mapping$x)]))
   yrng <- with(object, range(data[,deparse(mapping$y)]))
-
+  
   point <- data.frame(xrng[1] + loc[1]*diff(xrng), yrng[1] + loc[2]*diff(yrng))
   names(point) <- with(object, c(deparse(mapping$x), deparse(mapping$y)))
   point
@@ -245,23 +245,23 @@ distance <- function(point,points){
 #' @return invisibly returns a list containing the printed results
 #' @export
 summary.primerTree <- function(object, ..., probs=c(0, .05, .5, .95, 1), ranks = common_ranks) {
-
+  
   res = list()
   res[['lengths']] = t(data.frame('Sequence lengths'=labeled_quantile(laply(object$sequence, length), sprintf('%.0f%%', probs*100), probs=probs), check.names=F))
   print(res[['lengths']])
-
+  
   res[['distances']] = t(data.frame('Pairwise differences'=labeled_quantile(object$distances, sprintf('%.0f%%', probs*100), probs=probs), check.names=F))
   cat('\n')
   print(res[['distances']])
-
+  
   res[['rankDistances']] = calc_rank_dist_ave(object, common_ranks)
   print(res[['rankDistances']])
-
+  
   res[['ranks']] = laply(object$taxonomy[common_ranks], function(x) length(unique(x)))
   cat('\n', 'Unique taxa out of ', length(object$sequence), ' sequences\n', sep='')
   names(res[['ranks']]) = ranks
   print(res[['ranks']])
-
+  
   invisible(res)
 }
 
@@ -319,71 +319,71 @@ labeled_quantile = function(x, labels, ...){
 calc_rank_dist_ave <- function(x, ranks = common_ranks) {
   used_ranks <- grep("species", ranks, invert = T, value = T)
   rank_dist_mean <- data.frame(matrix(nrow = 1, ncol = 0))
-
+  
   # Raw taxonomy data
   taxa <- as.data.frame(x$taxonomy)
-
+  
   # Randomize the order of the taxa data frame
   taxa <- taxa[sample(nrow(taxa)), ]
   rownames(taxa) <- taxa$accession
-
+  
   # Pick random example per species and add back in the taxa info
   unique_factors <- as.data.frame(unique(taxa$species))
   colnames(unique_factors) <- "species"
   unique_factors <- join(unique_factors, taxa, type = "left", match = "first", by = "species")
-
+  
   # Get sequences for randomly selected species
   seqs <- x$sequence
   seqs <- seqs[names(seqs) %in% unique_factors$accession]
-
+  
   # Align and calculate pairwise distances and convert dists to dataframe
   align <- clustalo(seqs)
   dists <- as.data.frame(as.matrix(dist.dna(align, model = "N", pairwise.deletion = T)))
   dists$accession <- row.names(dists)
-
+  
   # Melt the dists dataframe so I can drop any distance that isn't within the (rank)
   melted <- melt(dists, id = "accession", variable.name = "accession2", value.name = "dist")
-
+  
   for(rank in used_ranks) {
-
+    
     # Gather only the needed taxa data
     unique_factors_sub <- unique_factors[ , colnames(unique_factors) %in% c("accession", "species", rank)]
-
+    
     # Drop any row in (rank) where there is only one species represented
     # Any instance of this leads to a distance within that rank of 0, skewing the results downward
     counts <- as.data.frame(table(unique_factors_sub[[rank]]))
     colnames(counts) <- c(rank, "count")
     unique_factors_sub <- join(unique_factors_sub, counts, by = rank)
     unique_factors_sub <- unique_factors_sub[unique_factors_sub$count > 1, ]
-
+    
     # Pull the nucleotide distance data in
     # Replace the rank1 accession with the rank1 taxa
     melted_sub <- join(melted, unique_factors_sub,by = "accession")
     melted_sub$rank1 <- as.factor(melted_sub[[rank]])
-
+    
     # Drop all columns except the three needed so the next join doesn't get messed up
     melted_sub <- melted_sub[, colnames(melted_sub) %in% c("accession2", "dist", "rank1", "species")]
     colnames(melted_sub)[1] <- "accession"
-
+    
     # Replace the rank2 accession with the rank2 taxa
     melted_sub <- join(melted_sub, unique_factors_sub, by = "accession")
     melted_sub$rank2 <- as.factor(melted_sub[[rank]])
-
+    
     # Drop all columns except the three needed
     melted_sub <- melted_sub[ , colnames(melted_sub) %in% c("rank2", "dist", "rank1", "species")]
-
+    
     # Drop all rows with missing information
     melted_sub <- na.omit(melted_sub)
-
+    
     # We only want distances within a taxa, so drop all comparisons between taxa
     # We also want to drop any comparisons of a species to itself, which will have dist == 0
     melted_sub <- melted_sub[melted_sub$rank1 == melted_sub$rank2 & melted_sub$species != melted_sub$species.1, ]
-
+    
     # Calculate the mean distance for each taxa compared
     #   We calculate each separately to avoid any one taxa with lots of hits (like human seqs)
     #   from skewing the mean
     melted_sub$group <- paste(melted_sub$rank1, melted_sub$rank2)
-
+    
     # Plug the means into the storage dataframe
     rank_dist_mean[[rank]] <- mean(melted_sub$dist)
   }
