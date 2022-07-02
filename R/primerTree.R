@@ -117,6 +117,11 @@ plot.primerTree = function(x, ranks=NULL, main=NULL, ...){
 #'  'CGGTTGGGGTGACCTCGGA', 'GCTGTTATCCCTAGGGTAACT',
 #'  num_aligns=1000, total_primer_specificity_mismatch=3)
 #' }
+#' 
+calculate_a_plus_b <- function(a,b){
+  a+b
+}
+
 search_primer_pair = function(forward, reverse, name=NULL, num_aligns=500,
                               num_permutations=25, simplify=TRUE, clustal_options=list(), 
                               distance_options=list(model="N", pairwise.deletion=T), api_key=Sys.getenv("NCBI_API_KEY"),
