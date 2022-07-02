@@ -117,11 +117,6 @@ plot.primerTree = function(x, ranks=NULL, main=NULL, ...){
 #'  'CGGTTGGGGTGACCTCGGA', 'GCTGTTATCCCTAGGGTAACT',
 #'  num_aligns=1000, total_primer_specificity_mismatch=3)
 #' }
-#' 
-calculate_a_plus_b <- function(a,b){
-  a+b
-}
-
 search_primer_pair = function(forward, reverse, name=NULL, num_aligns=500,
                               num_permutations=25, simplify=TRUE, clustal_options=list(), 
                               distance_options=list(model="N", pairwise.deletion=T), api_key=Sys.getenv("NCBI_API_KEY"),
@@ -130,7 +125,7 @@ search_primer_pair = function(forward, reverse, name=NULL, num_aligns=500,
   #HACK, primerTree is an environment rather than a list so we can treat it as
   #a pointer, I could make it a reference class, but that seems to be overkill
   #as I am converting to a list at the end of the function anyway...
-  message('hello world')
+  message('hello')
   if(missing(forward) || missing(reverse)){
     BLAST_primer()
     return()
