@@ -72,58 +72,58 @@ enumerate_ambiguity = function(sequence){
 
 print_options = function(options){
   output = capture.output( print(
-                                 options[ is.na(options$type) | options$type != 'hidden',
-                                        c('name', 'type', 'defval') ])
-                          )
-
+    options[ is.na(options$type) | options$type != 'hidden',
+             c('name', 'type', 'defval') ])
+  )
+  
   message(paste(output, "\n", sep=""))
 }
 
 BLAST_primer = function(forward, reverse, ..., organism='',
-  primer_specificity_database='nt', exclude_env='on'){
-
+                        primer_specificity_database='nt', exclude_env='on'){
+  
   url = 'https://www.ncbi.nlm.nih.gov/tools/primer-blast/'
   form = GET_retry(url)
-
+  
   content = parsable_html(form)
-
+  
   all_options = get_options(content)
-
+  
   if(missing(forward) || missing(reverse)){
     print_options(all_options)
     stop('No primers specified')
   }
-
+  
   options = list(..., primer_left_input=forward, primer_right_input=reverse,
                  organism=organism,
                  primer_specificity_database=primer_specificity_database,
                  exclude_env=exclude_env,
                  search_specific_primer='on')
-
+  
   names(options) = toupper(names(options))
-
+  
   match_args = pmatch(names(options), all_options$name)
   bad_args = is.na(match_args)
-
+  
   if(any(bad_args)){
     print_options(all_options)
     stop(paste(names(options)[bad_args], collapse=','), ' not valid option\n')
   }
-
+  
   options = get_defaults(options, all_options)
-
+  
   start_time = now()
-
+  
   message('Submitting Primer-BLAST query')
   response = POST_retry(paste(url, 'primertool.cgi', sep=''), body=options)
-
+  
   values = get_refresh_from_meta(response)
-
+  
   while(length(values) > 0){
     message('BLAST alignment processing, refreshing in ', values[1], ' seconds...')
     Sys.sleep(values[1])
     response = GET_retry(values[2])
-
+    
     values = get_refresh_from_meta(response)
   }
   total_time = start_time %--% now()
@@ -175,19 +175,19 @@ parse_a = function(a){
 
 parse_pre = function(pre){
   pre_text = xmlValue(pre)
-
+  
   a = getNodeSet(pre, './preceding-sibling::a[1]')
   if(length(a) <= 0)
     stop('Parsing failed for ', pre_text)
-
+  
   ids = parse_a(a[[1]])
-
+  
   product_length_regex = 'product length = (\\d+)'
   template_regex = 'Template[^\\d]+(\\d+)[^.ACGT]+([.ACGT]+)[^\\d]+(\\d+)'
   full_regex = paste('[\\S\\W]*', product_length_regex, '[\\S\\W]*?',
                      template_regex, '[\\S\\W]*', template_regex, '[\\S\\W]*', sep='')
   values = str_split(gsub(full_regex, paste('\\', 1:8, sep='', collapse='|'),
-                           pre_text, perl=T), '[|]')[[1]]
+                          pre_text, perl=T), '[|]')[[1]]
   data.frame(ids,
              product_length=as.numeric(values[1]),
              mismatch_forward=str_count(values[3], '[ACGT]'),
@@ -198,7 +198,7 @@ parse_pre = function(pre){
              reverse_stop = as.numeric(values[7]),
              product_start=min(as.numeric(values[c(2,4,5,7)])),
              product_stop=max(as.numeric(values[c(2,4,5,7)]))
-             )
+  )
 }
 get_refresh_from_meta = function(response){
   content = parsable_html(response)
@@ -222,16 +222,16 @@ get_defaults = function(set_options, options){
 get_options = function(content){
   options = rbind.fill(xpathApply(content, '//form//input | //form//select', parse_attributes))
   options$type = as.character(options$type)
-
+  
   #add dropdown type if they are NA
   options$type[is.na(options$type)] <- 'dropdown'
-
+  
   #make default values for checkboxes on or off rather than checked or unchecked
   options$defval = as.character(options$defval)
   check_map = c('checked' = 'on', 'unchecked' = '')
   checkboxes = which(options$type == 'checkbox')
   options$defval[ checkboxes ] = check_map[ options$defval[ checkboxes ] ]
-
+  
   options[ options$type != 'hidden',  c('name', 'type', 'defval') ]
 }
 
@@ -240,11 +240,11 @@ parse_attributes = function(x){
 }
 parsable_html = function(response){
   txt <- content(response, as='text', encoding='UTF-8')
-
+  
   # remove any unicode characters
   Encoding(txt) <- "UTF-8"
   txt <- iconv(txt, "UTF-8", "ASCII", sub = "")
-
+  
   #this gsub regex is to remove the definition lines, some of which have
   #  bracketed <junk> in them, which messes up the parsing
   txt <- gsub('("new_entrez".*?</a>).*?<pre>\n\n', '\\1\n<pre>', txt)
@@ -252,8 +252,5 @@ parsable_html = function(response){
 }
 filter_duplicates = function(hits){
   location_columns = c('accession', 'forward_start', 'forward_stop', 'reverse_start', 'reverse_stop')
-  hits[!duplicated(t(apply(hits[location_columns], 1, range,)))]
+  hits[!duplicated(t(apply(hits[location_columns], 1, range))),]
 }
-
-
-
