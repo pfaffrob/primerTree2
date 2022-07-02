@@ -150,7 +150,7 @@ search_primer_pair = function(forward, reverse, name=NULL, num_aligns=500,
                                              num_aligns=num_aligns,
                                              ...)
       start_time = now()
-     # primer_search$BLAST_result = filter_duplicates(ldply(primer_search$response, parse_primer_hits, .parallel=.parallel))
+      primer_search$BLAST_result = filter_duplicates(ldply(primer_search$response, parse_primer_hits, .parallel=.parallel))
         
 
       message(nrow(primer_search$BLAST_result), ' BLAST alignments parsed in ', seconds_elapsed_text(start_time))
@@ -159,20 +159,20 @@ search_primer_pair = function(forward, reverse, name=NULL, num_aligns=500,
       primer_search$taxonomy = get_taxonomy(primer_search$BLAST_result$accession)
       message('taxonomy retrieved in ', seconds_elapsed_text(start_time))
 
-      start_time = now()
-      primer_search$sequence = get_sequences(primer_search$BLAST_result$accession,
-                                             primer_search$BLAST_result$product_start,
-                                             primer_search$BLAST_result$product_stop,
-                                             api_key=api_key,
-                                             simplify=simplify,
-                                             .parallel=.parallel)
+    #  start_time = now()
+    #  primer_search$sequence = get_sequences(primer_search$BLAST_result$accession,
+    #                                         primer_search$BLAST_result$product_start,
+    #                                         primer_search$BLAST_result$product_stop,
+    #                                         api_key=api_key,
+    #                                         simplify=simplify,
+    #                                         .parallel=.parallel)
 
-      lengths = laply(primer_search$sequence, length)
-      message(length(primer_search$sequence), ' sequences retrieved from NCBI',
-              ' in ', seconds_elapsed_text(start_time), ', product length',
-              ' min:', min(lengths),
-              ' mean:', round(mean(lengths),2),
-              ' max:', max(lengths))
+    #  lengths = laply(primer_search$sequence, length)
+    #  message(length(primer_search$sequence), ' sequences retrieved from NCBI',
+    #          ' in ', seconds_elapsed_text(start_time), ', product length',
+    #          ' min:', min(lengths),
+    #          ' mean:', round(mean(lengths),2),
+    #          ' max:', max(lengths))
 
      # start_time = now()
      # primer_search$alignment = do.call(clustalo, c(list(primer_search$sequence, threads=getDoParWorkers()), clustal_options))
